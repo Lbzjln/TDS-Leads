@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Capture Prospects – TD SYNNEX</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b5fff">
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
+    .card { max-width: 600px; margin: auto; padding: 16px; border: 1px solid #ddd; border-radius: 12px; }
+    h1 { font-size: 1.25rem; margin: 0 0 12px; }
+    label { display:block; margin: 12px 0 6px; font-weight:600; }
+    input, textarea { width: 100%; padding: 10px; border:1px solid #ccc; border-radius:8px; font-size: 16px; }
+    .row { display:flex; gap: 12px; }
+    .row > div { flex:1; }
+    .actions { display:flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    button { padding: 10px 14px; border:0; border-radius:8px; background:#0b5fff; color:#fff; font-weight:600; cursor:pointer; }
+    button.secondary { background:#f1f3f5; color:#111; border:1px solid #ddd; }
+    small { color:#555; }
+    .legal { font-size: 0.9rem; color:#333; background:#f8f9fa; border:1px solid #eee; padding:10px; border-radius:8px; }
+    .badge { display:inline-block; background:#eef; color:#224; padding:2px 8px; border-radius:999px; font-size:12px; margin-left:6px; }
+  </style>
+  <script>
+    const STORAGE_KEY = "tdsynnex_leads_v1";
+    const LEGAL_VERSION = "v1-2026-01-29";
+
+    function loadLeads() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+    function saveLeads(leads) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(leads));
+      updateCount();
+    }
+    function updateCount() {
+      const count = loadLeads().length;
+      document.getElementById("count").textContent = String(count);
+    }
+    function validateSIREN(value) {
+      return /^[0-9]{9}$/.test(value.trim());
+    }
+    function validateEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    }
+    function validatePhone(value) {
+      return /^[0-9+\s().-]{6,}$/.test(value.trim());
+    }
+    function onSubmit(e) {
+      e.preventDefault();
+      const raison = document.getElementById("raison").value.trim();
+      const siren  = document.getElementById("siren").value.trim();
+      const nom    = document.getElementById("nom").value.trim();
+      const prenom = document.getElementById("prenom").value.trim();
+      const email  = document.getElementById("email").value.trim();
+      const tel    = document.getElementById("tel").value.trim();
+      const consent= document.getElementById("consent").checked;
+      const legalText = document.getElementById("legalText").textContent.trim();
+
+      if (!raison || !nom || !prenom || !email) {
+        alert("Merci de renseigner les champs obligatoires : Raison sociale, Nom, Prénom, Email.");
+        return;
+      }
+      if (!validateSIREN(siren)) {
+        if (!confirm("Le SIREN doit contenir 9 chiffres. Continuer sans SIREN valide ?")) return;
+      }
+      if (!validateEmail(email)) {
+        alert("Email invalide.");
+        return;
+      }
+      if (tel && !validatePhone(tel)) {
+        if (!confirm("Numéro de téléphone non standard. Continuer ?")) return;
+      }
+      if (!consent) {
+        alert("Vous devez cocher la case de consentement pour être recontacté.");
+        return;
+      }
+
+      const leads = loadLeads();
+      leads.push({
+        raison, siren, nom, prenom, email, tel,
+        consent: true,
+        consentLegalVersion: LEGAL_VERSION,
+        consentTextSnapshot: legalText,
+        consentTimestampIso: new Date().toISOString()
+      });
+      saveLeads(leads);
+      e.target.reset();
+      alert("Merci ! Vos informations ont été enregistrées.");
+      // Remettre focus pour enchaîner les passages
+      document.getElementById("raison").focus();
+    }
+    function exportCSV() {
+      const leads = loadLeads();
+      if (leads.length === 0) { alert("Aucune donnée à exporter."); return; }
+      const headers = [
+        "Raison sociale","SIREN","Nom","Prénom","Email","Téléphone",
+        "Consentement","Version mentions","Texte mentions (snapshot)","Horodatage consentement"
+      ];
+      const rows = leads.map(l => [
+        l.raison, l.siren, l.nom, l.prenom, l.email, l.tel,
+        l.consent ? "oui" : "non", l.consentLegalVersion, l.consentTextSnapshot.replace(/\s+/g,' ').trim(), l.consentTimestampIso
+      ]);
+      const csv = [headers, ...rows]
+        .map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";"))
+        .join("\n");
+
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const ts = new Date().toISOString().replace(/[:.]/g,"-");
+      a.download = `leads_tdsynnex_${ts}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    function clearAll() {
+      if (confirm("Supprimer toutes les données locales ? Cette action est irréversible.")) {
+        saveLeads([]);
+        alert("Données supprimées.");
+      }
+    }
+    window.addEventListener("load", () => {
+      updateCount();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
+      }
+      document.getElementById("raison").focus();
+    });
+  </script>
+</head>
+<body>
+  <div class="card">
+    <h1>Formulaire Prospects <span class="badge">Offline</span></h1>
+    <form onsubmit="onSubmit(event)">
+      <label>Raison sociale *</label>
+      <input id="raison" required placeholder="Ex. ACME SAS" />
+
+      <label>SIREN (9 chiffres)</label>
+      <input id="siren" inputmode="numeric" pattern="[0-9]{9}" placeholder="123456789" />
+
+      <div class="row">
+        <div>
+          <label>Nom *</label>
+          <input id="nom" required placeholder="Dupont" />
+        </div>
+        <div>
+          <label>Prénom *</label>
+          <input id="prenom" required placeholder="Marie" />
+        </div>
+      </div>
+
+      <label>Email *</label>
+      <input id="email" type="email" required placeholder="prenom.nom@entreprise.com" />
+
+      <label>Téléphone</label>
+      <input id="tel" type="tel" placeholder="+33 6 12 34 56 78" />
+
+      <div class="legal" id="legalText">
+        Les informations recueillies sont traitées par <strong>TD SYNNEX</strong> afin de
+        recontacter les prospects pour la création et l’ouverture d’un compte client.
+        Base légale : votre consentement. Les destinataires sont les équipes commerciales
+        et marketing habilitées. Les données sont conservées <strong>3 ans à compter du dernier contact</strong>.
+        Vous pouvez exercer vos droits (accès, rectification, effacement, opposition, limitation)
+        en écrivant à <em>dpo@votre-domaine.com</em>. Pour en savoir plus, consultez notre
+        Politique de confidentialité.
+      </div>
+
+      <label>
+        <input type="checkbox" id="consent" />
+        J’accepte d’être recontacté(e) par TD SYNNEX au sujet de l’ouverture de compte.
+      </label>
+
+      <div class="actions">
+        <button type="submit">Enregistrer (offline)</button>
+        <button type="button" class="secondary" onclick="exportCSV()">Exporter CSV</button>
+        <button type="button" class="secondary" onclick="clearAll()">Vider les données</button>
+        <small>Enregistrements stockés localement : <strong id="count">0</strong></small>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
