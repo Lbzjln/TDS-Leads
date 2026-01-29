@@ -86,7 +86,17 @@
       });
       saveLeads(leads);
       e.target.reset();
-      alert("Merci ! Vos informations ont été enregistrées.");
+      //alert("Merci ! Vos informations ont été enregistrées.");
+      // Remplacer alert(...) par ceci :
+const toast = document.getElementById("custom-toast");
+toast.style.display = "block";
+
+// Masquer automatiquement après 3 secondes
+setTimeout(() => {
+  toast.style.display = "none";
+}, 3000);
+      
+      
       // Remettre focus pour enchaîner les passages
       document.getElementById("raison").focus();
     }
@@ -116,12 +126,18 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-    function clearAll() {
-      if (confirm("Supprimer toutes les données locales ? Cette action est irréversible.")) {
-        saveLeads([]);
-        alert("Données supprimées.");
-      }
+function clearAll() {
+  const code = prompt("Entrez le code administrateur pour supprimer les données :");
+  if (code === "ITP1234") { // Changez "1234" par votre code
+    if (confirm("Supprimer toutes les données locales ? Cette action est irréversible.")) {
+      saveLeads([]);
+      alert("Données supprimées.");
     }
+  } else {
+    alert("Code incorrect. Suppression annulée.");
+  }
+}
+    
     window.addEventListener("load", () => {
       updateCount();
       if ("serviceWorker" in navigator) {
@@ -187,3 +203,4 @@
 </body>
 
 </html>
+
