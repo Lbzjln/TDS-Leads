@@ -10,8 +10,29 @@
     body { font-family: system-ui, Arial, sans-serif; margin: 16px; }
     .card { max-width: 600px; margin: auto; padding: 16px; border: 1px solid #ddd; border-radius: 12px; }
     h1 { font-size: 1.25rem; margin: 0 0 12px; }
-    label { display:block; margin: 12px 0 6px; font-weight:600; }
-    input, textarea { width: 100%; padding: 10px; border:1px solid #ccc; border-radius:8px; font-size: 16px; }
+
+label { 
+  display: block; 
+  width: 80%; 
+  margin: 12px auto 6px auto; /* Centre le label avec les mêmes marges */
+  font-weight: 600; 
+}
+    
+  input, textarea { 
+  width: 80%; /* Réduit la largeur à 80% au lieu de 100% */
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto; /* Ces deux lignes centrent le champ */
+  padding: 10px; 
+  border: 1px solid #ccc; 
+  border-radius: 8px; 
+  font-size: 16px; 
+  box-sizing: border-box; /* Assure que le padding ne dépasse pas des 80% */
+  }
+    
+
+
+    
     .row { display:flex; gap: 12px; }
     .row > div { flex:1; }
     .actions { display:flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
@@ -168,16 +189,13 @@ function clearAll() {
       <label>SIREN (9 chiffres)</label>
       <input id="siren" inputmode="numeric" pattern="[0-9]{9}" placeholder="123456789" />
 
-      <div class="row">
-        <div>
+      
           <label>Nom *</label>
           <input id="nom" required placeholder="Dupont" />
-        </div>
-        <div>
-          <label>Prénom *</label>
-          <input id="prenom" required placeholder="Marie" />
-        </div>
-      </div>
+          
+    <label>Prénom *</label>
+    <input id="prenom" required placeholder="Marie" />
+    
 
       <label>Email *</label>
       <input id="email" type="email" required placeholder="prenom.nom@entreprise.com" />
@@ -214,6 +232,7 @@ function clearAll() {
 </body>
 
 </html>
+
 
 
 
