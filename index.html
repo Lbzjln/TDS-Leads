@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Capture Prospects – TD SYNNEX</title>
+  <title>Formulaire ODC – TD SYNNEX</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b5fff">
   <style>
@@ -133,7 +133,7 @@
 </head>
 <body>
   <div class="card">
-    <h1>Formulaire Prospects <span class="badge">Offline</span></h1>
+    <h1>Formulaire ouverture de compte<span class="badge">Offline</span></h1>
     <form onsubmit="onSubmit(event)">
       <label>Raison sociale *</label>
       <input id="raison" required placeholder="Ex. ACME SAS" />
@@ -172,7 +172,10 @@
         <input type="checkbox" id="consent" />
         J’accepte d’être recontacté(e) par TD SYNNEX au sujet de l’ouverture de compte.
       </label>
-
+<div id="custom-toast" style="display:none; position:fixed; top:20px; right:20px; background:#28a745; color:white; padding:15px 25px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:1000;">
+  ✅ Merci ! Vos informations ont été enregistrées.
+</div>
+      
       <div class="actions">
         <button type="submit">Enregistrer (offline)</button>
         <button type="button" class="secondary" onclick="exportCSV()">Exporter CSV</button>
@@ -182,4 +185,5 @@
     </form>
   </div>
 </body>
+
 </html>
