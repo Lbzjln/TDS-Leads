@@ -100,32 +100,39 @@ setTimeout(() => {
       // Remettre focus pour enchaîner les passages
       document.getElementById("raison").focus();
     }
-    function exportCSV() {
-      const leads = loadLeads();
-      if (leads.length === 0) { alert("Aucune donnée à exporter."); return; }
-      const headers = [
-        "Raison sociale","SIREN","Nom","Prénom","Email","Téléphone",
-        "Consentement","Version mentions","Texte mentions (snapshot)","Horodatage consentement"
-      ];
-      const rows = leads.map(l => [
-        l.raison, l.siren, l.nom, l.prenom, l.email, l.tel,
-        l.consent ? "oui" : "non", l.consentLegalVersion, l.consentTextSnapshot.replace(/\s+/g,' ').trim(), l.consentTimestampIso
-      ]);
-      const csv = [headers, ...rows]
-        .map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";"))
-        .join("\n");
+function exportCSV() {
+  const leads = loadLeads();
+  if (leads.length === 0) { alert("Aucune donnée à exporter."); return; }
+  
+  const headers = [
+    "Raison sociale","SIREN","Nom","Prénom","Email","Téléphone",
+    "Consentement","Version mentions","Texte mentions (snapshot)","Horodatage consentement"
+  ];
+  
+  const rows = leads.map(l => [
+    l.raison, l.siren, l.nom, l.prenom, l.email, l.tel,
+    l.consent ? "oui" : "non", l.consentLegalVersion, l.consentTextSnapshot.replace(/\s+/g,' ').trim(), l.consentTimestampIso
+  ]);
+  
+  const csvContent = [headers, ...rows]
+    .map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";"))
+    .join("\r\n"); // Utilisation de \r\n pour Windows/Excel
 
-    const blob = new Blob(["\ufeff" + csv], {type: "text/csv;charset=utf-8;"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const ts = new Date().toISOString().replace(/[:.]/g,"-");
-      a.download = `leads_tdsynnex_${ts}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+  // Création du Blob avec le BOM UTF-8 correct
+  const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+  const blob = new Blob([bom, csvContent], { type: "text/csv;charset=utf-8" });
+  
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const ts = new Date().toISOString().replace(/[:.]/g,"-");
+  a.download = `leads_tdsynnex_${ts}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+    
 function clearAll() {
   const code = prompt("Entrez le code administrateur pour supprimer les données :");
   if (code === "ITP1234") { // Changez "1234" par votre code
@@ -207,6 +214,7 @@ function clearAll() {
 </body>
 
 </html>
+
 
 
 
