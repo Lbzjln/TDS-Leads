@@ -1,5 +1,8 @@
-const CACHE = "tdsynnex-leads-cache-v1";
+const CACHE = "tdsynnex-leads-cache-v2";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
+const ASSETS = ["./", "./index.html", "./manifest.json", "./logotds.png"];
+
+
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -19,4 +22,5 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match("./index.html")))
   );
+
 });
